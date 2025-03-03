@@ -1,4 +1,4 @@
-package frc.robot.Elevator;
+package frc.robot.subsystems;
 
 import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.motorcontrol.PWMSparkMax;
@@ -12,7 +12,7 @@ public class Elevator extends SubsystemBase{
 
 
     public Elevator(){
-        motor = new PWMSparkMax(0); //subject to change
+        motor = new PWMSparkMax(4); //subject to change
         motor.setSafetyEnabled(true);
 
         toplimitswitch = new DigitalInput(1); //subject to change 

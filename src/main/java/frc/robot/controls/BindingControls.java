@@ -1,6 +1,7 @@
-package frc.robot.Elevator;
+package frc.robot.controls;
 
 import edu.wpi.first.wpilibj.XboxController;
+import frc.robot.subsystems.Elevator;
 
 //This class will assign the joystick controll commands as default for the elevator 
 public class BindingControls {
