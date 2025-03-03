@@ -4,7 +4,7 @@ import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.subsystems.Elevator;
 
-//This class will crate a new command structure 
+//This class will create a new command structure 
 public class JoystickElevatorControls extends Command {
     private final Elevator elevator;
     private final XboxController controller;
