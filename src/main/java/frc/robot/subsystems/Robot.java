@@ -5,12 +5,13 @@
 package frc.robot.subsystems;
 
 import edu.wpi.first.util.sendable.SendableRegistry;
+import edu.wpi.first.wpilibj.ADIS16448_IMU;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.SPI;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.drive.MecanumDrive;
 import edu.wpi.first.wpilibj.motorcontrol.PWMSparkMax;
-import com.kauailabs.navx.frc.AHRS;
+
 
 
 
@@ -23,10 +24,9 @@ public class Robot extends TimedRobot {
 
   private static final int JoystickChannel = 0;
 
+  private ADIS16448_IMU gyro;
   private MecanumDrive robotDrive;
   private Joystick stick;
-
-  private AHRS gyro;
 
   @Override
   public void robotInit() {
@@ -39,6 +39,7 @@ public class Robot extends TimedRobot {
     SendableRegistry.addChild(robotDrive, rearLeft);
     SendableRegistry.addChild(robotDrive, frontRight);
     SendableRegistry.addChild(robotDrive, rearRight);
+    
 
     // Invert the right side motors.
     // You may need to change or remove this to match your robot.
@@ -47,13 +48,38 @@ public class Robot extends TimedRobot {
 
     robotDrive = new MecanumDrive(frontLeft::set, rearLeft::set, frontRight::set, rearRight::set);
 
+    gyro = new ADIS16448_IMU();
+
     stick = new Joystick(JoystickChannel);
+
+    gyro.calibrate();
   }
 
   @Override
   public void teleopPeriodic() {
-    // Use the joystick Y axis for forward movement, X axis for lateral
-    // movement, and Z axis for rotation.
-    robotDrive.driveCartesian(-stick.getY(), -stick.getX(), -stick.getZ());
+    //Get joystick inputs X, Y and rotation
+    double x = stick.getX(); //Lateral movement (left/right)
+    double y = stick.getY(); //Forward/backward (foward/backwards)
+    double rotation = stick.getTwist(); //Rotation (clockwise/couterclockwise)
+
+    //Gyro angle for field orientation correction
+    double gyroAngle = gyro.getAngle(); //Gyro will retuwn robot's angle in degrees
+
+    //Convert joystick inputs to field-oriented control
+    //Convert joystick input (x, y) relative to field using yro angle
+    double fieldOrientedX = x*Math.cos(Math.toRadians(gyroAngle)) + y*Math.sin(Math.toRadians(gyroAngle));
+    double fieldOrientedY = -x*Math.sin(Math.toRadians(gyroAngle)) + y*Math.cos(Math.toRadians(gyroAngle));
+
+    //Drive the robot with field-oriented control
+    robotDrive.driveCartesian(fieldOrientedX, fieldOrientedY, rotation);
+
+    System.out.println("Gyro Angle: " + gyroAngle); //Logging and debugging
+  }
+
+  @Override
+  public void disabledInit(){
+  //Reset gyro angle when disabled
+  gyro.reset();
+
   }
 }
