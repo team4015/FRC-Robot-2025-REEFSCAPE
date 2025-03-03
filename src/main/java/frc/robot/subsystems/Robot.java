@@ -7,7 +7,6 @@ package frc.robot.subsystems;
 import edu.wpi.first.util.sendable.SendableRegistry;
 import edu.wpi.first.wpilibj.ADIS16448_IMU;
 import edu.wpi.first.wpilibj.Joystick;
-import edu.wpi.first.wpilibj.SPI;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.drive.MecanumDrive;
 import edu.wpi.first.wpilibj.motorcontrol.PWMSparkMax;
@@ -79,7 +78,7 @@ public class Robot extends TimedRobot {
   @Override
   public void disabledInit(){
   //Reset gyro angle when disabled
-  gyro.reset();
+    gyro.reset();
 
   }
 }

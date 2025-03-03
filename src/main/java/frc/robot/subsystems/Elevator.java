@@ -9,6 +9,7 @@ public class Elevator extends SubsystemBase{
     private final PWMSparkMax motor;
     private final DigitalInput toplimitswitch;
     private final DigitalInput bottomlimitswitch;
+    private final DigitalInput readerlimitswitch;
 
 
     public Elevator(){
@@ -27,6 +28,15 @@ public class Elevator extends SubsystemBase{
         }
         else{
             motor.set(speed);
+        }
+
+        int clickCounter = 0;
+
+        if(readerlimitswitch.get()){
+            clickCounter += 1;
+        }
+        if(clickCounter == 4){
+            clickCounter = 0;
         }
     }
 
