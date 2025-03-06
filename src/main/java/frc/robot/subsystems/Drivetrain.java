@@ -12,6 +12,8 @@ import edu.wpi.first.wpilibj.ADXRS450_Gyro;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.Timer;
 
+import edu.wpi.first.wpilibj.XboxController; // new
+
 //import edu.wpi.first.apriltag.jni.*;
 
 /*import edu.wpi.first.math.geometry.Pose2d;
@@ -31,7 +33,8 @@ public class Drivetrain extends SubsystemBase
   // VARIABLES //
   
   
-
+  //controller
+  private final XboxController controller;
   
   // HARDWARE //
   private final MotorController rightMotor;
@@ -69,6 +72,8 @@ public class Drivetrain extends SubsystemBase
   public static double distanceFromStartingPos = 0; 
   public final static double GEAR_RATIO = 1/10.71;
   public final static double driveStraightCorrectTime = 0.001; 
+
+  
   
   // CONSTRUCTORS //
   
@@ -126,8 +131,11 @@ public class Drivetrain extends SubsystemBase
   }
 
   public void calibrateGyro(){
-    resetGyro();
-    gyro.calibrate();
+    if (controller.getBackButtonPressed())
+    {
+      resetGyro();
+      gyro.calibrate();
+    }
   }
 
   public void resetGyro(){
