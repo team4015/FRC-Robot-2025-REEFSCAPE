@@ -18,16 +18,18 @@ public class Shooter extends SubsystemBase
 
         controller = new XboxController(0); //subject to change
         limitswitch = new DigitalInput(0); //subject to change
+
+        motor.set(0.1);
     }
 
     public void shoot(double speed)
     {
-        if (controller.getRightBumperButtonPressed()) motor.set(speed);   
+        if (controller.getRightBumperPressed()) motor.set(speed);  
     }
 
     public void preventEject()
     {
-        if (limitswitch.get() && !controller.getRightBumperButtonPressed()) motor.set(0);
+        if (limitswitch.get() && !controller.getRightBumperPressed()) motor.set(0);
     }
 
     public void stop()

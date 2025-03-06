@@ -22,7 +22,7 @@ public class JoystickElevatorControls extends Command {
             speed = 0;
         }
 
-        elevator.setSpeed(speed*0.5); //Scale speed
+        elevator.setSpeed(speed*0.9); //Scale speed
     }
 
     @Override

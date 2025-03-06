@@ -77,4 +77,10 @@ public class Robot extends TimedRobot {
     gyro.reset();
 
   }
+
+  @Override
+  public void autonomousPeriodic(){
+    
+  }
+
 }
