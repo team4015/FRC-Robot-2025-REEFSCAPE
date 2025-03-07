@@ -8,7 +8,7 @@ import edu.wpi.first.wpilibj.drive.MecanumDrive;
 import edu.wpi.first.wpilibj.motorcontrol.PWMSparkMax;
 
 public class PhotoVision extends TimedRobot {
-    //Hardware
+    //Hardware`
     private static final int FrontLeftChannel = 0;
     private static final int RearLeftChannel = 1;
     private static final int FrontRightChannel = 2;
