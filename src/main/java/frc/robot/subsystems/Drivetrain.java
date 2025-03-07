@@ -25,6 +25,8 @@ public class Drivetrain extends SubsystemBase{
     rearright.setInverted(true);
 
     robotDrive = new MecanumDrive(frontleft, rearleft, frontright, rearright);
+
+    gyro.calibrate();
   }
 
   public void drive(double xSpeed, double ySpeed, double zRotation, boolean fieldOriented){
