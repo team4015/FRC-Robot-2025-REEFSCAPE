@@ -1,7 +1,5 @@
 package frc.robot.commands.Auto;
 
-import java.util.Scanner;
-
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.subsystems.Drivetrain;
@@ -32,24 +30,9 @@ public class AutonomousCommand extends Command{
 
     @Override 
     public void execute(){
-        Scanner input = new Scanner(System.in);
-        System.out.println("Enter Case scenario: ");
-        int caseScenario = input.nextInt();
-
-        System.out.println("Enter levels: ");
-        int level = input.nextInt();
-        
         double time = timer.get();
-
-        if(caseScenario == 1){
-
-        }
-        else if(caseScenario == 2){
-
-
-        }
-        else if(caseScenario == 3){
-
+        if(time < 1.5){
+            drive.drive(0, 0.5, 0, false);
         }
     }
 
@@ -65,20 +48,20 @@ public class AutonomousCommand extends Command{
     }
 
     private void driveFoward(){
-        drive.drive(0, 0.5, 0, false);
+        
+
     }
 
     private void turnRight(){
-        drive.drive(0, 0, 0.5, isFinished);
+
 
     }
     private void turningLeft(){
-        drive.drive(0, 0, -0.5, false);
+
 
     }
 
     private void stopRobot(){
-        drive.drive(0, 0, 0, false);
 
     }
 

@@ -3,8 +3,8 @@ package frc.robot.controls;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.commands.Auto.AutonomousCommand;
-import frc.robot.commands.Drivetrain.Driver;
 import frc.robot.commands.Elevator.JoystickElevatorControls;
+import frc.robot.commands.drivetrain.Driver;
 import frc.robot.subsystems.Drivetrain;
 import frc.robot.subsystems.Elevator;
 
