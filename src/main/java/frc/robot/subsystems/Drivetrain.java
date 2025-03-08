@@ -1,6 +1,7 @@
 package frc.robot.subsystems;
 
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.util.sendable.SendableRegistry;
 import edu.wpi.first.wpilibj.ADXRS450_Gyro;
 import edu.wpi.first.wpilibj.drive.MecanumDrive;
 import edu.wpi.first.wpilibj.motorcontrol.PWMSparkMax;
@@ -20,6 +21,11 @@ public class Drivetrain extends SubsystemBase{
     PWMSparkMax rearleft = new PWMSparkMax(RearLeftChannel);
     PWMSparkMax frontright = new PWMSparkMax(FrontRightChannel);
     PWMSparkMax rearright = new PWMSparkMax(RearRightChannel);
+    
+    SendableRegistry.addChild(robotDrive, frontleft);
+    SendableRegistry.addChild(robotDrive, rearleft);
+    SendableRegistry.addChild(robotDrive, frontright);
+    SendableRegistry.addChild(robotDrive, rearright);
 
     frontright.setInverted(true);
     rearright.setInverted(true);

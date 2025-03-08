@@ -5,13 +5,20 @@
 package frc.robot;
 
 import edu.wpi.first.util.sendable.SendableRegistry;
-import edu.wpi.first.wpilibj.ADIS16448_IMU;
+import edu.wpi.first.wpilibj.ADXRS450_Gyro;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.drive.MecanumDrive;
 import edu.wpi.first.wpilibj.motorcontrol.PWMSparkMax;
+import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.CommandScheduler;
+import frc.robot.controls.BindingControls;
 
 public class Robot extends TimedRobot {
+
+  private Command auto;
+  private BindingControls binding;
+
   private static final int FrontLeftChannel = 0;
   private static final int RearLeftChannel = 1;
   private static final int FrontRightChannel = 2;
@@ -19,7 +26,7 @@ public class Robot extends TimedRobot {
 
   private static final int JoystickChannel = 0;
 
-  private ADIS16448_IMU gyro;
+  private ADXRS450_Gyro gyro;
   private MecanumDrive robotDrive;
   private Joystick stick;
 
@@ -43,11 +50,21 @@ public class Robot extends TimedRobot {
 
     robotDrive = new MecanumDrive(frontLeft::set, rearLeft::set, frontRight::set, rearRight::set);
 
-    gyro = new ADIS16448_IMU();
+    gyro = new ADXRS450_Gyro();
 
     stick = new Joystick(JoystickChannel);
 
     gyro.calibrate();
+
+    binding =  new BindingControls();
+
+  }
+
+  @Override 
+  public void teleopInit(){
+    if(auto != null){
+      auto.cancel();
+    }
   }
 
   @Override
@@ -69,6 +86,8 @@ public class Robot extends TimedRobot {
     robotDrive.driveCartesian(fieldOrientedX, fieldOrientedY, rotation);
 
     System.out.println("Gyro Angle: " + gyroAngle); //Logging and debugging
+
+    CommandScheduler.getInstance().run();
   }
 
   @Override
@@ -77,4 +96,19 @@ public class Robot extends TimedRobot {
     gyro.reset();
 
   }
+
+  @Override 
+  public void autonomousInit(){
+    auto = binding.getAutonomousCommand();
+
+    if(auto != null){
+      auto.schedule();
+    }
+  }
+
+  @Override
+  public void  autonomousPeriodic(){
+    CommandScheduler.getInstance().run();
+  }
+
 }

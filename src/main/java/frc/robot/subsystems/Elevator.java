@@ -26,6 +26,7 @@ public class Elevator extends SubsystemBase{
 
     public void setSpeed(double speed){
         //Check joystick and see which button is pressed and moves according to different levels using limit switch
+        motor.set(speed);
         if(controller.getXButtonPressed()){
             levelCounter = 1;
         }
