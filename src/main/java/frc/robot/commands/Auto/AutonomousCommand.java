@@ -30,10 +30,11 @@ public class AutonomousCommand extends Command{
 
     @Override 
     public void execute(){
-        double time = timer.get();
-        if(time < 1.5){
-            drive.drive(0, 0.5, 0, false);
-        }
+        //double time = timer.get();
+        //if(time < 1.5){
+            //drive.drive(0.5, 0, 0, false);
+        //}
+        drive.drive(0.5, 0, 0, false);
     }
 
     @Override
