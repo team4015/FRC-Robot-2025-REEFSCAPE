@@ -1,10 +1,9 @@
 package frc.robot.subsystems;
 
-import com.studica.frc.AHRS;
-import com.studica.frc.AHRS.NavXComType;
 
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.util.sendable.SendableRegistry;
+import edu.wpi.first.wpilibj.ADXRS450_Gyro;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.drive.MecanumDrive;
 import edu.wpi.first.wpilibj.motorcontrol.PWMSparkMax;
@@ -20,7 +19,7 @@ public class Drivetrain extends SubsystemBase{
   private static final int FrontRightChannel = 2;
   private static final int RearRightChannel = 3;
 
-  private AHRS gyro;
+  private ADXRS450_Gyro gyro;
   private MecanumDrive robotDrive;
 
   public Drivetrain(){
@@ -29,7 +28,7 @@ public class Drivetrain extends SubsystemBase{
     PWMSparkMax frontright = new PWMSparkMax(FrontRightChannel);
     PWMSparkMax rearright = new PWMSparkMax(RearRightChannel);
 
-    gyro = new AHRS(NavXComType.kMXP_SPI);
+    gyro = new ADXRS450_Gyro();
 
     frontright.setInverted(true);
     rearright.setInverted(true);
@@ -41,7 +40,7 @@ public class Drivetrain extends SubsystemBase{
 
     robotDrive = new MecanumDrive(frontleft, rearleft, frontright, rearright);
 
-    // gyro.calibrate();
+    gyro.calibrate();
   }
 
   public void drive(double xSpeed, double ySpeed, double zRotation, boolean fieldOriented){
@@ -58,7 +57,7 @@ public class Drivetrain extends SubsystemBase{
     if (controller.getBackButtonPressed())
     {
       gyro.reset();
-      // gyro.calibrate();
+      gyro.calibrate();
     }
     
   }
@@ -66,4 +65,5 @@ public class Drivetrain extends SubsystemBase{
   public double getGyroAngle(){
     return gyro.getAngle();
   }
+
 }

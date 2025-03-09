@@ -14,10 +14,10 @@ public class AutonomousCommand extends Command{
     private Elevator elevator;
     
 
-    public AutonomousCommand(){
+    public AutonomousCommand(Drivetrain drivetrain){
         timer = new Timer();
         isFinished = false;
-        drive = new Drivetrain();
+        this.drive = drivetrain;
         shoot = new Shooter();
         elevator = new Elevator();
     }
