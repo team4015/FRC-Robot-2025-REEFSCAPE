@@ -29,7 +29,7 @@ public class Shooter extends SubsystemBase
 
     public void preventEject()
     {
-        if (limitswitch.get() && !controller.getRightBumperButtonPressed()) motor.set(0);
+        if (limitswitch.get() && !controller.getRightBumperPressed()) motor.set(0);
     }
 
     public void stop()

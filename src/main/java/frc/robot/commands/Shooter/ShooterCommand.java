@@ -16,9 +16,8 @@ public class ShooterCommand extends Command{
 
     @Override
     public void execute(){
-        double speed = controller.getLeftTriggerAxis();
-
-        shooter.shoot(speed);
+        double speed = 1;
+        if (controller.getRightBumperPressed()) shooter.shoot(speed);
     }
 
     @Override
