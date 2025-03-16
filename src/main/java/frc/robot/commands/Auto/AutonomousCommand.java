@@ -9,15 +9,15 @@ import frc.robot.subsystems.Shooter;
 public class AutonomousCommand extends Command{
     private Timer timer;
     private boolean isFinished;
-    private Drivetrain drive; 
+    private Drivetrain drive;
     private Shooter shoot;
     private Elevator elevator;
     
 
-    public AutonomousCommand(){
+    public AutonomousCommand(Drivetrain drivetrain){
         timer = new Timer();
         isFinished = false;
-        drive = new Drivetrain();
+        this.drive = drivetrain;
         shoot = new Shooter();
         elevator = new Elevator();
     }
@@ -30,10 +30,11 @@ public class AutonomousCommand extends Command{
 
     @Override 
     public void execute(){
-        double time = timer.get();
-        if(time < 1.5){
-            drive.moveMotors(0.5, 0);
-        }
+        //double time = timer.get();
+        //if(time < 1.5){
+            //drive.drive(0.5, 0, 0, false);
+        //}
+        drive.drive(0.5, 0, 0, false);
     }
 
     @Override
@@ -48,7 +49,7 @@ public class AutonomousCommand extends Command{
     }
 
     private void driveFoward(){
-
+        
 
     }
 

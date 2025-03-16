@@ -56,6 +56,11 @@ dependencies {
     implementation wpi.java.deps.wpilib()
     implementation wpi.java.vendor.java()
 
+    //Vendor Library Depencides
+    implementation 'com.kauailabs.navx.frc:navx_frc-java:2025.1.1-beta-1'
+    implementation 'com.revrobotics.frc:REVLib-java:2025.0.3'
+
+
     roborioDebug wpi.java.deps.wpilibJniDebug(wpi.platforms.roborio)
     roborioDebug wpi.java.vendor.jniDebug(wpi.platforms.roborio)
 

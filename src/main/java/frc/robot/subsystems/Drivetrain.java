@@ -1,238 +1,144 @@
 package frc.robot.subsystems;
 
-import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import edu.wpi.first.wpilibj.drive.DifferentialDrive;
-import edu.wpi.first.wpilibj.motorcontrol.MotorController;
-import edu.wpi.first.wpilibj.motorcontrol.Talon;
-import edu.wpi.first.wpilibj.motorcontrol.Victor;
-//import edu.wpi.first.wpilibj.motorcontrol.MotorControllerGroup;
+import com.kauailabs.navx.frc.AHRS;
+import com.revrobotics.RelativeEncoder;
+import com.revrobotics.spark.SparkLowLevel.MotorType;
+import com.revrobotics.spark.SparkMax;
 
-import edu.wpi.first.wpilibj.BuiltInAccelerometer;
-import edu.wpi.first.wpilibj.ADXRS450_Gyro;
-import edu.wpi.first.math.util.Units;
-import edu.wpi.first.wpilibj.Timer;
-
-import edu.wpi.first.wpilibj.XboxController; // new
-
-//import edu.wpi.first.apriltag.jni.*;
-
-/*import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.geometry.Rotation3d;*/
-
+import edu.wpi.first.util.sendable.SendableRegistry;
+import edu.wpi.first.wpilibj.SPI;
+import edu.wpi.first.wpilibj.drive.MecanumDrive;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
-public class Drivetrain extends SubsystemBase
-{
-  // CONSTANTS //
 
-  
-  // declare constant variables here (make them private static)
-  
-  // VARIABLES //
-  
-  
-  //controller
-  private final XboxController controller;
-  
-  // HARDWARE //
-  private final MotorController rightMotor;
-  private final MotorController leftMotor; 
-  /*private final MotorController rightFrontMotor;
-  private final MotorController rightBackMotor; 
-  private final MotorController leftFrontMotor;
-  private final MotorController leftBackMotor;*/
-  private DifferentialDrive drive;
+public class Drivetrain extends SubsystemBase{
+  //Hardware for Motors
+  private static final int FrontLeftChannel = 0;
+  private static final int RearLeftChannel = 1;
+  private static final int FrontRightChannel = 2;
+  private static final int RearRightChannel = 3;
 
-  private ADXRS450_Gyro gyro;
-  private BuiltInAccelerometer accel;
-  private Timer timer; 
-  private Timer driveStraightTimer; 
+  //Variables for gyro and mecanum drive
+  private AHRS gyro;
+  private MecanumDrive robotDrive;
 
-   // declare variables here
-   private double currentAngle;
-   private double currentGyroAngle;
-   private double offSetAngle;
-   private boolean tilting;
-   private double timeElapsed; 
+  //Variables for the Motors
+  private SparkMax frontleft;
+  private SparkMax rearleft;
+  private SparkMax frontright;
+  private SparkMax rearright;
 
-   //private final DifferentialDriveOdometry odometry; 
-  // declare electrical hardware here (PORTS)
-  public static final int RIGHT_MOTOR =0 ; 
-  public static final int LEFT_MOTOR = 1;
-  
-  //ports for encoders
-  private final static double ACCEL_TO_CENTRE_DIST = 0.305;//in meters 
-  private final static double ACCEL_ANGLE = 66.9; //in degrees
-  private final static double COS_OF_ACCEL_ANGLE = Math.cos(Math.toRadians(ACCEL_ANGLE));  
+  //Variable for Encoders
+  private RelativeEncoder frontleftEncoder;
+  private RelativeEncoder frontrightEncoder;
+  private RelativeEncoder rearleftEncoder;
+  private RelativeEncoder rearrightEncoder;
 
-  // CONSTANTS // 
-  public static final double WHEEL_RADIUS =  Units.inchesToMeters(6)/2;
-  public static double distanceFromStartingPos = 0; 
-  public final static double GEAR_RATIO = 1/10.71;
-  public final static double driveStraightCorrectTime = 0.001; 
 
-  
-  
-  // CONSTRUCTORS //
-  
-  public Drivetrain()
-  {
-    // instantiate all electrical hardware and variable here
-    rightMotor = new Victor(LEFT_MOTOR);
-    leftMotor = new Talon(RIGHT_MOTOR);
-    leftMotor.setInverted(true);
+  public Drivetrain(){
+    //Initalizing the motors
+    frontleft = new SparkMax(FrontLeftChannel, MotorType.kBrushless);
+    rearleft = new SparkMax(RearLeftChannel, MotorType.kBrushless);
+    frontright = new SparkMax(FrontRightChannel, MotorType.kBrushless);
+    rearright = new SparkMax(RearRightChannel, MotorType.kBrushless);
 
-    distanceFromStartingPos = 0;
-    currentAngle = 0;
-    currentGyroAngle = 0;
-    offSetAngle = 0;
-    tilting = false; 
+    frontleft.setInverted(false);
+    frontright.setInverted(true);
+    rearleft.setInverted(false);
+    rearright.setInverted(true);
 
-    drive = new DifferentialDrive(leftMotor, rightMotor);
+    //Initalizing the Encoders
+    frontleftEncoder = frontleft.getEncoder();
+    frontrightEncoder = frontright.getEncoder();
+    rearrightEncoder = rearright.getEncoder();
+    rearleftEncoder = rearleft.getEncoder();
+
+    //Apply configuration
+    SendableRegistry.addChild(robotDrive, frontleft);
+    SendableRegistry.addChild(robotDrive, rearleft);
+    SendableRegistry.addChild(robotDrive, frontright);
+    SendableRegistry.addChild(robotDrive, rearright);
+
+    //Initalizing the Gyro 
+    gyro = new AHRS(SPI.Port.kMXP);
+
+    robotDrive = new MecanumDrive(frontleft, rearleft, frontright, rearright);
+  }
+
+  public void drive(double xSpeed, double ySpeed, double zRotation, boolean fieldOriented){
+    xSpeed = applyDeadBand(xSpeed);
+    ySpeed = applyDeadBand(ySpeed);
+    zRotation = applyDeadBand(zRotation);
     
-    gyro = new ADXRS450_Gyro();
-    calibrateGyro();
+    if(fieldOriented){
+      Rotation2d gyroAngle = Rotation2d.fromDegrees(-gyro.getAngle());
 
-    accel = new BuiltInAccelerometer();
-    
-    timer = new Timer();
-    driveStraightTimer = new Timer(); 
-    resetTimer(); 
-    startTimer();
-  }
-  
-  public void moveMotors(double speed, double turn){
-    SmartDashboard.putNumber("Gyro Rate:", gyro.getRate());
-    drive.arcadeDrive(speed, turn);
-    /*if(turn == 0){
-      if(gyro.getAngle()>currentAngle){
-        offSetAngle = gyro.getAngle()-currentAngle;
-      }else if(gyro.getAngle()<currentAngle){
-        offSetAngle = currentAngle-gyro.getAngle();
-      }
-      if(offSetAngle==0||Math.abs(offSetAngle)%360.0==0){
-        drive.arcadeDrive(speed,turn);
-      }else{
-        driveStraightTimer.start();
-        if(driveStraightTimer.get()<=driveStraightCorrectTime&&driveStraightTimer.get()>0){
-          drive.arcadeDrive(0,(-Math.toRadians(offSetAngle)/driveStraightCorrectTime)*WHEEL_RADIUS);
-        }
-        driveStraightTimer.reset();
-      }
-    }else{
-      drive.arcadeDrive(speed, turn);
-    }*/
+      robotDrive.driveCartesian(xSpeed, ySpeed, zRotation, gyroAngle);
+    }
+
+    else{
+      robotDrive.driveCartesian(xSpeed, ySpeed, zRotation);
+    }
   }
 
-  public void stopMotors(){
-    drive.stopMotor();
-  }
+  private double applyDeadBand(double value){
+    double deadband = 0.05;
 
-  public void calibrateGyro(){
-    if (controller.getBackButtonPressed())
-    {
-      resetGyro();
-      gyro.calibrate();
+    if(Math.abs(value) < deadband){
+      return 0.0;
+    }
+    else{
+      return value;
     }
   }
 
   public void resetGyro(){
-    gyro.reset();
+      gyro.reset();
   }
 
   public double getGyroAngle(){
-    return gyro.getAngle(); 
+    return gyro.getAngle();
   }
 
-  /*public Rotation2d gyroRotation2d(){
-    return gyro.getRotation2d();
-  }*/
+  private double positionConvertionFactor(){
+    //Configure Encoders
+    double wheelCircumference = 0.47878; //example of 6 inch wheel
+    double gearRatio = 10.71; //Example of gear ratio
+    double positionConversionFactor  = (wheelCircumference * Math.PI) / gearRatio;
 
-  public void resetGyroAngle(){
-    currentAngle = 0;
+    return positionConversionFactor;
   }
 
-  public double reduceAngle(Double gyroAngle){
-    int degreeCount = 0;
-    for(int i = 1; i<=Math.abs(gyroAngle);i++){
-      if(Math.abs(gyroAngle)-(180*i)>=0){
-        degreeCount++; 
-      }
-    }
-    return Math.abs(gyroAngle)-(degreeCount*Math.abs(gyroAngle));    
+  public double getFrontLeftEncoderDistance(){
+    return frontleftEncoder.getPosition()*positionConvertionFactor();
   }
 
-  public double getTime(){
-    return timer.get();
+  public double getFrontRightEncoderDistance(){
+    return frontrightEncoder.getPosition()*positionConvertionFactor();
   }
 
-  public void startTimer(){
-    timer.start();
+  public double getRearRightEncoderDistance(){
+    return rearrightEncoder.getPosition()*positionConvertionFactor();
   }
 
-  public void stopTimer(){
-    timer.stop();
+  public double getRearLeftEncoderDistance(){
+    return rearleftEncoder.getPosition()*positionConvertionFactor();
   }
 
-  public void resetTimer(){
-    timer.reset(); 
+  public void resetEncoder(){
+    frontleftEncoder.setPosition(0);
+    frontrightEncoder.setPosition(0);
+    rearleftEncoder.setPosition(0);
+    rearrightEncoder.setPosition(0);
   }
 
-  public boolean checkForTilt(){
-    if(accel.getZ()!=0){
-      tilting = true;     
-    }else{
-      tilting = false;
-    }
-    SmartDashboard.putBoolean("Tilting:", tilting);
-    return tilting; 
+  @Override
+  public void periodic(){
+    SmartDashboard.putNumber("Front Left Motor: ", getFrontLeftEncoderDistance());
+    SmartDashboard.putNumber("Front Right Motor: ", getFrontRightEncoderDistance());
+    SmartDashboard.putNumber("Rear Left Motor: ", getRearLeftEncoderDistance());
+    SmartDashboard.putNumber("Rear Right Motor", getRearRightEncoderDistance());
   }
-
-  @Override 
-  public void periodic (){
-
-    timeElapsed =  getTime();
-    currentGyroAngle = getGyroAngle();
-    double xAccel = -accel.getX();
-    xAccel *= 9.8;
-
-    double rate = gyro.getRate();
-    rate = Math.toRadians(rate);
-
-    double turningAcceleration = rate*rate*ACCEL_TO_CENTRE_DIST*COS_OF_ACCEL_ANGLE;// Thank you Lucas's physics class XDXD --> btw
-                                                                              //btw you get this by taking the second derivative of rcos(angular speed*time = rad) which equals angular displacement
-    xAccel+= turningAcceleration;
-    
-    
-    SmartDashboard.putNumber("Gyro Angle:", currentGyroAngle);
-    SmartDashboard.putNumber("Acceleration:", xAccel);
-    
-
-    double distanceInX = xAccel*Math.pow(timeElapsed,2);
-    if(distanceFromStartingPos==0){
-      if(currentGyroAngle==0){
-        distanceFromStartingPos+=distanceInX;
-      }else{
-        distanceFromStartingPos+=distanceInX/Math.cos(currentGyroAngle); 
-      }
-    }else{
-      if(reduceAngle(currentGyroAngle)>90){
-        distanceFromStartingPos = Math.pow((Math.pow(distanceFromStartingPos,2)+Math.pow(distanceInX,2)-2*distanceInX*distanceFromStartingPos*Math.cos((90-reduceAngle(currentGyroAngle)))),0.5);
-      }else if(reduceAngle(currentGyroAngle)<90){
-        distanceFromStartingPos = Math.pow((Math.pow(distanceFromStartingPos,2)+Math.pow(distanceInX,2)-2*distanceInX*distanceFromStartingPos*Math.cos((90+reduceAngle(currentGyroAngle)))),0.5);
-      }else{
-        distanceFromStartingPos = Math.pow(((Math.pow(distanceFromStartingPos,2))+Math.pow(distanceInX,2)),0.5);
-      }
-    }
-
-    SmartDashboard.putNumber("Distance from Start:", distanceFromStartingPos);
-    resetGyroAngle(); 
-    resetTimer();
-  }
-
-  // METHODS //
-  
-  // write your subsystem methods here
 }

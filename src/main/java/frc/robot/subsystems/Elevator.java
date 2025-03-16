@@ -1,64 +1,91 @@
 package frc.robot.subsystems;
 
-import edu.wpi.first.wpilibj.DigitalInput;
-import edu.wpi.first.wpilibj.XboxController;
-import edu.wpi.first.wpilibj.motorcontrol.PWMSparkMax;
+import com.revrobotics.RelativeEncoder;
+import com.revrobotics.spark.SparkLimitSwitch;
+import com.revrobotics.spark.SparkLowLevel.MotorType;
+import com.revrobotics.spark.SparkMax;
+
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 public class Elevator extends SubsystemBase{
     //Hardware
-    private final PWMSparkMax motor;
-    private final XboxController controller;
-    private final DigitalInput levellimitswitch;
+    private static final int elevatorMotorChannel = 4;
 
-    //variables declared for variable counting
-    int levelCounter;
-    int targetCounter;
+    private SparkMax motor;
+    private RelativeEncoder elevatorEncoder;
 
+    private SparkLimitSwitch reverseSwitch;
+    private SparkLimitSwitch forwardSwitch;
+    
     public Elevator(){
-        motor = new PWMSparkMax(4); //subject to change
-        motor.setSafetyEnabled(true);
+        motor = new SparkMax(elevatorMotorChannel, MotorType.kBrushless); //subject to change
 
-        levellimitswitch = new DigitalInput(0);
+        elevatorEncoder = motor.getEncoder();
 
-        controller = new XboxController(0); //Subject to change
+        reverseSwitch = motor.getReverseLimitSwitch();
+        forwardSwitch = motor.getForwardLimitSwitch();
+
     }
 
     public void setSpeed(double speed){
-        motor.set(speed);
-        //Check joystick and see which button is pressed and moves according to different levels using limit switch
-        if(controller.getXButtonPressed()){
-            levelCounter = 1;
+        if (speed < 0 && reverseSwitch.isPressed()) {
+            //If moving down and bottom limit switch is pressed, stop  motor
+            motor.set(0);
         }
-        if(controller.getYButtonPressed()){
-            levelCounter = 2;
+        else if(speed > 0 && forwardSwitch.isPressed()){
+            //If moving up and the top limit switch is pressed, stop the motor
+            motor.set(0);
         }
-        if(controller.getBButton()){
-            levelCounter = 3;
-        }
-        if(controller.getAButton()){
-            levelCounter = 4;
-        }
-
-        targetCounter = 0;
-
-        while(levelCounter == targetCounter){
+        else{
+            //Otherwise, set the motor speed
             motor.set(speed);
-            if(levellimitswitch.get() == true){
-                //increment target counter by one when limit switch is pressed
-                targetCounter += 1;
-            }
-            if(levelCounter == targetCounter){
-                //set motors to 0 ---> stop motors
-                //reset the targetCounter and levelCounter to 0 respectively
-                motor.set(0);
-                targetCounter = 0;
-                levelCounter = 0;
-            }
         }
+    }
+
+    public void automaticLeveling(double speed, double distance){
+        resetEncoder();
+        setSpeed(speed);
+        
+        if(getElevatorEncoderDistance() == distance){
+            setSpeed(0);
+        }
+    }
+
+    private double positionConversionFactor(){
+        //Configure Encoders
+        double spoolCircumference = 0.47878; //Change to the sppol
+        double gearRatio = 100; //Example of gear ratio
+        double positionConversionFactor  = (spoolCircumference * Math.PI) / gearRatio;
+
+        return positionConversionFactor;
+    }
+
+    public double getElevatorEncoderDistance(){
+        return elevatorEncoder.getPosition()*positionConversionFactor();
+    }
+
+    public void resetEncoder(){
+        elevatorEncoder.setPosition(0);
     }
 
     public void stop(){
         motor.set(0); //Ensure motor is stopped
+    }
+
+    public boolean isBottomLimitPressed(){
+        return reverseSwitch.isPressed();
+    }
+
+    public boolean isTopLimitPressed(){
+        return forwardSwitch.isPressed();
+    }
+
+
+    @Override
+    public void periodic(){
+        SmartDashboard.putBoolean("Status of Bottom Switch", isBottomLimitPressed());
+        SmartDashboard.putBoolean("Status of Top Switch", isTopLimitPressed());
+        SmartDashboard.putNumber("Elevator Distance", getElevatorEncoderDistance());
     }
 }
